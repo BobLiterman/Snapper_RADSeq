@@ -48,7 +48,6 @@ All reads were trimmed using [the BBMap Suite](https://jgi.doe.gov/data-and-tool
 
 ```
 bbduk.sh ref=adapters.fa qtrim=w ktrim=r trimq=10 maq=15 minlength=50 in=<SAMPLE>_1.fastq in2=<SAMPLE>_2.fastq out=<ID>_Trim_1.fastq.gz out2=<ID>_Trim_2.fastq.gz &> out_<ID>_Trim
-
 ```
 
 ##### Trim Results for Composite Genome Samples:
