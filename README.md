@@ -5,7 +5,9 @@ Mayara Matos
 A walkthrough of an analysis to develop SNPs for differentiation *Lutjanus campechanus* and *L. purpureus*
 
 #### Acquiring data
-All data for this project was downloaded from the NCBI database. Most data are from the paper [Genomics overrules mitochondrial DNA, siding with morphology on a controversial case of species delimitation](https://royalsocietypublishing.org/doi/full/10.1098/rspb.2018.2924), but some also come from [dDocent: a RADseq, variant-calling pipeline designed for population genomics of non-model organisms](https://peerj.com/articles/431/).
+All data for this project was downloaded from the NCBI database. Most data are from the paper [Genomics overrules mitochondrial DNA, siding with morphology on a controversial case of species delimitation](https://royalsocietypublishing.org/doi/full/10.1098/rspb.2018.2924), but some also come from [dDocent: a RADseq, variant-calling pipeline designed for population genomics of non-model organisms](https://peerj.com/articles/431/).  
+
+We also leverage an existing genome assembly for *L. campechanus* from [Development and characterization of genomic resources for a non-model marine teleost, the red snapper (Lutjanus campechanus, Lutjanidae): Construction of a high-density linkage map, anchoring of genome contigs and comparative genomic analysis](https://pubmed.ncbi.nlm.nih.gov/32348345/).
 
 #### Step 1: Assemble a Composite Genome with SISRS
 
