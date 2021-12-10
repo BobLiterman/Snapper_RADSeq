@@ -11,7 +11,12 @@ We also leverage an existing genome assembly for *L. campechanus* from [Developm
 
 #### Step 1: Assemble a Composite Genome with SISRS
 
-To assemble the SISRS composite genome, we downloaded data from the far reaches of the range to avoid introgression issues. 18 *L. campechanus* samples came from Florida, USA, while the 12 *L. purpureus* samples came from Fortaleza, Brazil.
+To assemble the SISRS composite genome, we downloaded data from the far reaches of the range to avoid introgression issues. 
+
+  - 18 *L. campechanus* samples came from Florida, USA  
+  - 18 *L. campechanus* samles came from Alabama, USA  
+  - 12 *L. purpureus* samples came from Fortaleza, Brazil  
+  - 13 *L. purpureus* samples came from Sao Luis, Brazil  
 
 ```
 fasterq-dump SRR8647703
@@ -44,6 +49,38 @@ fasterq-dump SRR8647854
 fasterq-dump SRR8647858
 fasterq-dump SRR8647861
 fasterq-dump SRR8647853
+fasterq-dump SRR8647728
+fasterq-dump SRR8647782
+fasterq-dump SRR8647807
+fasterq-dump SRR8647809
+fasterq-dump SRR8647777
+fasterq-dump SRR8647781
+fasterq-dump SRR8647783
+fasterq-dump SRR8647816
+fasterq-dump SRR8647810
+fasterq-dump SRR8647808
+fasterq-dump SRR8647814
+fasterq-dump SRR8647780
+fasterq-dump SRR8647811
+fasterq-dump SRR8647729
+fasterq-dump SRR8647813
+fasterq-dump SRR8647812
+fasterq-dump SRR8647815
+fasterq-dump SRR8647776
+fasterq-dump SRR8647868
+fasterq-dump SRR8647869
+fasterq-dump SRR8647871
+fasterq-dump SRR8647865
+fasterq-dump SRR8647864
+fasterq-dump SRR8647876
+fasterq-dump SRR8647870
+fasterq-dump SRR8647825
+fasterq-dump SRR8647866
+fasterq-dump SRR8647827
+fasterq-dump SRR8647877
+fasterq-dump SRR8647826
+fasterq-dump SRR8647867
+
 ```
 
 All reads were trimmed using [the BBMap Suite](https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmap-guide/), with the following template:
