@@ -460,15 +460,19 @@ Based on the SNPs generated above, we screened the mapping results from all samp
 
 **Basic Takeaways:**  
 1. These SNPs were useful at differentiating species from these populations.  
-  - Median *L. campechanus* SNP matching rates were 80.4% (ALA) and 75.6% (FLO)
-  - Median *L. purpureus* SNP matching rates were 76.3% (FOR) and 75.7% (SAO)  
+    - Median *L. campechanus* SNP matching rates were 80.4% (ALA) and 75.6% (FLO)
+    - Median *L. purpureus* SNP matching rates were 76.3% (FOR) and 75.7% (SAO)  
 
 2. Based on medians, <15% of SNPs matched the alternate species across populations  
 
 3. Across samples, 8.6% - 13.6% of sites had alleles associated with both species  
 
+4. Results were very similar between reference sets.  
+    - Between reference sets, the median difference between *L. campechanus* SNPs was 1.3%
+    - Between reference sets, the median difference between *L. purpureus* SNPs was 0.52%
+
 #### Step 6: Create the second set of reference samples  
-Based on results from the first round of SNP-based classification, we chose a new set of reference samples. For the second round of reference samples, we chose the 10 samples per species with the lowest proportional matching to the (1) alternate species or (2) both species. Two new sets of reference samples were designed (Ref_2A/Ref_2B), each containing 5 specimens per species. To generate SNPs, we pooled reads from specimens together by reference set and re-mapped them against the reference genome. By pooling the reads together, the SISRS mapping scripts will isolate sites that are fixed within the pool.  
+Based on results from the first round of SNP-based classification, we chose a new set of reference samples. For the second round of reference samples, we chose the 10 samples per species (still limited to ALA/FLO + FOR/SAO) with the lowest proportional matching to the (1) alternate species or (2) both species. Two new sets of reference samples (Ref_2A/Ref_2B) were designed  each containing 5 specimens per species. To generate SNPs, we pooled reads from specimens together by reference set and re-mapped them against the reference genome. By pooling the reads together, the SISRS mapping scripts will isolate sites that are fixed within the pool.  
 
 ##### Mapping Results:  
 | SISRS_ID      | Specimen_Count | Fixed_Calls | Het_Calls | Unmapped    |
@@ -478,4 +482,24 @@ Based on results from the first round of SNP-based classification, we chose a ne
 | Ref_2B_LutCam | 5              | 90,136,931  | 477,712   | 680,934,019 |
 | Ref_2B_LutPur | 5              | 98,056,804  | 660,393   | 672,831,465 |
 
+To generate the second set of species-informative SNPs, for both sets of reference samples (2A/2B) we isolated sites that were:  
 
+1) Fixed in both pools (i.e. Fixed [or missing] in all selected *L. purpureus* and *L. campechanus*)  
+2) Identical within pools  
+3) Divergent between pools  
+4) Present in at least 2/5 specimens per pool  
+5) For SNPs identified in both Reference Set 2A and 2B, we also removed SNPs where the SNP results varied across reference sets   
+
+##### Round 2 SNP Results:  
+**Ref_2A:** 19,252 SNPs  
+**Ref_2B:** 19,720 SNPs  
+
+#### Step 7: Use SNPs from Reference Sets 2A/2B to classify samples from all populations  
+Based on the SNPs generated above, we screened the mapping results from all samples, and assessed alleles at all SNPs sites if they were either fixed within the specimen, or had biallelic variation.  
+
+##### Round 2 SNP Classification:  
+![Rd2 SNP Results](images/SNP_Plot_2.png)  
+
+**Basic Takeaways:**  
+1. The *L. campechanus* samples are largely uniform, although a few samples appear introgressed.  
+2. Introgression is much more common in *L. purpureus*, especially in Nueva and La Guajira (NUE + GUE).  
