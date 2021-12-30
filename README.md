@@ -503,3 +503,34 @@ Based on the SNPs generated above, we screened the mapping results from all samp
 **Basic Takeaways:**  
 1. The *L. campechanus* samples are largely uniform, although a few samples appear introgressed.  
 2. Introgression is much more common in *L. purpureus*, especially in Nueva and La Guajira (NUE + GUE).  
+
+#### Step 7: Create the third set of reference samples  
+Based on results from the second round of SNP-based classification, we chose a new set of reference samples. For the third round of reference samples, we chose the 20 samples per species from all populations with the lowest proportional matching to the (1) alternate species or (2) both species. Two new sets of reference samples (Ref_3A/Ref_3B) were designed  each containing 10 specimens per species. To generate SNPs, we pooled reads from specimens together by reference set and re-mapped them against the reference genome. By pooling the reads together, the SISRS mapping scripts will isolate sites that are fixed within the pool.  
+
+##### Mapping Results:  
+| SISRS_ID      | Specimen_Count | Fixed_Calls | Het_Calls | Unmapped    |
+|---------------|----------------|-------------|-----------|-------------|
+| Ref_3A_LutCam | 10             | 137,669,408 | 879,701   | 632,999,553 |
+| Ref_3A_LutPur | 10             | 150,060,547 | 1,587,340 | 619,900,775 |
+| Ref_3B_LutCam | 10             | 120,973,714 | 817,794   | 649,757,154 |
+| Ref_3B_LutPur | 10             | 124,072,757 | 1,120,598 | 646,355,307 |
+
+To generate the third set of species-informative SNPs, for both sets of reference samples (3A/3B) we isolated sites that were:  
+
+1) Fixed in both pools (i.e. Fixed [or missing] in all selected *L. purpureus* and *L. campechanus*)  
+2) Identical within pools  
+3) Divergent between pools  
+4) Present in at least 2/10 specimens per pool  
+5) For SNPs identified in both Reference Set 3A and 3B, we also removed SNPs where the SNP results varied across reference sets   
+
+##### Round 3 SNP Results:  
+**Ref_3A:** 26,738 SNPs  
+**Ref_3B:** 24,213 SNPs  
+
+#### Step 8: Use SNPs from Reference Sets 3A/3B to re-classify samples from all populations  
+Based on the SNPs generated above, we screened the mapping results from all samples, and assessed alleles at all SNPs sites if they were either fixed within the specimen, or had biallelic variation.  
+
+##### Round 3 SNP Classification:  
+![Rd3 SNP Results](images/SNP_Plot_3.png)  
+
+#### Step 8: Create the final set of reference SNPs  
