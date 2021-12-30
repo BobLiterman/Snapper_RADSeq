@@ -434,4 +434,20 @@ python SCRIPT_DIR/get_pruned_dict.py SISRS_DIR/TAXA COMPOSITE_DIR 1 1
 Choosing appropriate reference samples is critical for designing effective species-informative SNPs. To that end, our final SNP set was assessed using an iterative set of comparisons and filtering. Based on results from ["Genomics overrules mitochondrial DNA, siding with morphology on a controversial case of species delimitation"](https://royalsocietypublishing.org/doi/full/10.1098/rspb.2018.2924), we started our search using *L. campechanus* samples from Alabama and Florida, and *L. purpureus* samples from Fortaleza and São Luís. Based on the read mapping results above, we calculated the pairwise similarity between (1) Alabama *L. campechanus* and Fortaleza *L. purpureus* and (2) Florida *L. campechanus* and São Luís *L. purpureus*.  
 
 ##### Pairwise Results:  
-![Pairwise Results](images/Pairwise.png)
+![Pairwise Results](images/Pairwise.png)  
+
+Although in both cases the species were more similar to their own species than the alternate species, results from the Alabama/Fortaleza comparison appeared more refined, and we chose our first set of reference samples from these populations. From each population we chose 4 samples based on the following metric:  
+
+```
+Sorting Metric = (Median Number of Sites Shared Between All Samples * Median Percent Identity with the Matching Species)/(Median Percent Identity with the Alternate Species)
+```
+
+In this way, we are selecting samples with a larger amount of information (high number of co-called sites), and also a higher relative similarity with the correct species. From these 8 total samples, we split them into two sets of species pairs to generate two independent reference datasets. To generate the first set of species-informative SNPs, we analyzed the mapping data from the first round of mapping and isolated sites that were:  
+
+1) Fixed in all four specimens   
+2) Identical within species  
+3) Divergent between species  
+
+##### Round 1 SNP Results:  
+**Ref_1A:** 24,179 SNPs  
+**Ref_1B:** 22,121 SNPs
