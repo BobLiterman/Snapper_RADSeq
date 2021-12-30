@@ -1,6 +1,6 @@
 # Snapper RADSeq with SISRS
-Robert Literman  
-Mayara Matos  
+**Robert Literman**  
+**Mayara Matos**  
 
 A walkthrough of an analysis to develop SNPs for differentiation *Lutjanus campechanus* and *L. purpureus*
 
