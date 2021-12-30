@@ -533,4 +533,5 @@ Based on the SNPs generated above, we screened the mapping results from all samp
 ##### Round 3 SNP Classification:  
 ![Rd3 SNP Results](images/SNP_Plot_3.png)  
 
-#### Step 8: Create the final set of reference SNPs  
+#### Step 9: Create the final set of reference SNPs  
+
