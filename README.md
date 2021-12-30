@@ -450,4 +450,32 @@ In this way, we are selecting samples with a larger amount of information (high 
 
 ##### Round 1 SNP Results:  
 **Ref_1A:** 24,179 SNPs  
-**Ref_1B:** 22,121 SNPs
+**Ref_1B:** 22,121 SNPs  
+
+#### Step 5: Use SNPs from Reference Sets 1A/1B to classify samples from Florida, Alabama, Fortaleza, and São Luís  
+Based on the SNPs generated above, we screened the mapping results from all samples from Florida, Alabama, Fortaleza, and São Luís, and assessed alleles at all SNPs sites if they were either fixed within the specimen, or had biallelic variation.  
+
+##### Round 1 SNP Classification:  
+![Rd1 SNP Results](images/SNP_Plot_1.png)  
+
+**Basic Takeaways:**  
+1. These SNPs were useful at differentiating species from these populations.  
+  - Median *L. campechanus* SNP matching rates were 80.4% (ALA) and 75.6% (FLO)
+  - Median *L. purpureus* SNP matching rates were 76.3% (FOR) and 75.7% (SAO)  
+
+2. Based on medians, <15% of SNPs matched the alternate species across populations  
+
+3. Across samples, 8.6% - 13.6% of sites had alleles associated with both species  
+
+#### Step 6: Create the second set of reference samples  
+Based on results from the first round of SNP-based classification, we chose a new set of reference samples. For the second round of reference samples, we chose the 10 samples per species with the lowest proportional matching to the (1) alternate species or (2) both species. Two new sets of reference samples were designed (Ref_2A/Ref_2B), each containing 5 specimens per species. To generate SNPs, we pooled reads from specimens together by reference set and re-mapped them against the reference genome. By pooling the reads together, the SISRS mapping scripts will isolate sites that are fixed within the pool.  
+
+##### Mapping Results:  
+| SISRS_ID      | Specimen_Count | Fixed_Calls | Het_Calls | Unmapped    |
+|---------------|----------------|-------------|-----------|-------------|
+| Ref_2A_LutCam | 5              | 87,347,556  | 471,968   | 683,729,138 |
+| Ref_2A_LutPur | 5              | 92,481,587  | 630,041   | 678,437,034 |
+| Ref_2B_LutCam | 5              | 90,136,931  | 477,712   | 680,934,019 |
+| Ref_2B_LutPur | 5              | 98,056,804  | 660,393   | 672,831,465 |
+
+
