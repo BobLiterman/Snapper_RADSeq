@@ -430,3 +430,8 @@ python SCRIPT_DIR/get_pruned_dict.py SISRS_DIR/TAXA COMPOSITE_DIR 1 1
 | LutPur_SAO_RB1515       | 100,793,857   | 16,859,887  | 16,841    | 754,671,934 |
 | LutPur_SAO_RB1516       | 161,128,268   | 18,585,101  | 17,965    | 752,945,596 |
 
+#### Step 4: Create the first set of reference samples  
+Choosing appropriate reference samples is critical for designing effective species-informative SNPs. To that end, our final SNP set was assessed using an iterative set of comparisons and filtering. Based on results from ["Genomics overrules mitochondrial DNA, siding with morphology on a controversial case of species delimitation"](https://royalsocietypublishing.org/doi/full/10.1098/rspb.2018.2924), we started our search using *L. campechanus* samples from Alabama and Florida, and *L. purpureus* samples from Fortaleza and São Luís. Based on the read mapping results above, we calculated the pairwise similarity between (1) Alabama *L. campechanus* and Fortaleza *L. purpureus* and (2) Florida *L. campechanus* and São Luís *L. purpureus*.  
+
+##### Pairwise Results:  
+![Pairwise Results](images/Pairwise.png)
