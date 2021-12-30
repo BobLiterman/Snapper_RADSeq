@@ -7,7 +7,9 @@ A walkthrough of an analysis to develop SNPs for differentiation *Lutjanus campe
 #### Acquiring data
 All data for this project was downloaded from the NCBI database. RAD-Seq data are from the paper [Genomics overrules mitochondrial DNA, siding with morphology on a controversial case of species delimitation](https://royalsocietypublishing.org/doi/full/10.1098/rspb.2018.2924).
 
-We also leverage an existing genome assembly for *L. campechanus* from [Development and characterization of genomic resources for a non-model marine teleost, the red snapper (Lutjanus campechanus, Lutjanidae): Construction of a high-density linkage map, anchoring of genome contigs and comparative genomic analysis](https://pubmed.ncbi.nlm.nih.gov/32348345/).
+We also leverage an existing genome assembly for *L. campechanus* from [Development and characterization of genomic resources for a non-model marine teleost, the red snapper (Lutjanus campechanus, Lutjanidae): Construction of a high-density linkage map, anchoring of genome contigs and comparative genomic analysis](https://pubmed.ncbi.nlm.nih.gov/32348345/).  
+
+We use a modified implementation of the [SISRS bioinformatics pipeline](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-015-0632-y) to process the data.  
 
 #### Step 1: Read Trimming  
 
@@ -199,4 +201,232 @@ bbduk.sh ref=adapters.fa qtrim=w ktrim=r trimq=10 maq=15 minlength=50 in=<SAMPLE
 | LutCam_YUC_RB1650       | SRR8647716 | YUC      | 80,733,360    | 80,274,791    | 99.4%             |
 | LutCam_YUC_RB1651       | SRR8647717 | YUC      | 198,431,412   | 197,368,993   | 99.5%             |
 | LutCam_YUC_RB1652       | SRR8647718 | YUC      | 205,525,036   | 204,449,452   | 99.5%             |
+
+#### Step 2: Set up reference genome for mapping  
+
+To make use of the SISRS scripts, the *L. campechanus* reference genome was indexed using *BBMap* and SISRS scripts were called to create accessory files.  
+
+```
+mkdir <>/Composite_Genome
+cd <>/Composite_Genome
+
+rename.sh <>/lcampe.scf.fasta out=<>/Composite_Genome/contigs.fa prefix=SISRS addprefix=t trd=t
+bbmap.sh ref=contigs.fa
+python <>/Genome_SiteLengths.py <>/Composite_Genome
+```
+
+#### Step 3: Map individual read files against reference genome  
+
+We mapped RAD-Seq data from all samples against the *L. campechanus* reference genome using the default settings in SISRS. The basic template is below:  
+
+```
+# Link the reference genome into each folder
+cp -as COMPOSITE_DIR/ref .
+
+# Map reads as single-ended
+bbwrap.sh in=READS maxindel=99 strictmaxindel=t sam=1.3 ambiguous=toss out=TAXA.sam append=t
+
+# Convert SAM to pileup
+samtools view -Su -@ PROCESSORS -F 4 TAXA.sam | samtools sort -@ PROCESSORS - -o SISRS_DIR/TAXA/TAXA.bam
+samtools mpileup -f COMPOSITE_GENOME SISRS_DIR/TAXA/TAXA.bam > SISRS_DIR/TAXA/TAXA.pileups
+
+# Use pileup file to create a sample-specific reference genome to refine mapping
+python SCRIPT_DIR/specific_genome.py SISRS_DIR/TAXA COMPOSITE_GENOME
+
+# Index new reference
+samtools faidx SISRS_DIR/TAXA/contigs.fa
+rm -rf ref TAXA.sam TAXA.bam
+bbmap.sh ref=contigs.fa
+
+# Remap reads against new reference and convert to pileup
+bbwrap.sh in=READS maxindel=99 strictmaxindel=t sam=1.3 ambiguous=toss out=TAXA.sam append=t
+samtools view -Su -@ PROCESSORS -F 4 TAXA.sam | samtools sort -@ PROCESSORS - -o SISRS_DIR/TAXA/TAXA.bam
+samtools index SISRS_DIR/TAXA/TAXA.bam
+samtools mpileup -f COMPOSITE_GENOME SISRS_DIR/TAXA/TAXA.bam > SISRS_DIR/TAXA/TAXA.pileups
+
+# Create a final list of sites, where fixed sites are noted as ACTG-, and any sites with 0 coverage or heterozygosity are noted as "N" 
+python SCRIPT_DIR/get_pruned_dict.py SISRS_DIR/TAXA COMPOSITE_DIR 1 1
+```
+
+##### Mapping Results:  
+| SISRS_ID                | Trim_Bases    | Fixed_Calls | Het_Calls | Unmapped    |
+|-------------------------|---------------|-------------|-----------|-------------|
+| LutCam_ALA_ABR169       | 88,118,211    | 31,332,661  | 54,857    | 740,161,144 |
+| LutCam_ALA_ABR170       | 580,892,901   | 98,709,023  | 316,174   | 672,523,465 |
+| LutCam_ALA_ABR34        | 87,775,827    | 33,524,803  | 54,747    | 737,969,112 |
+| LutCam_ALA_ABR35        | 111,406,328   | 38,062,338  | 75,019    | 733,411,305 |
+| LutCam_ALA_ABR55        | 91,251,476    | 34,781,869  | 53,324    | 736,713,469 |
+| LutCam_ALA_ABR59        | 71,055,293    | 29,197,369  | 36,619    | 742,314,674 |
+| LutCam_ALA_ABR60        | 398,794,943   | 95,121,260  | 249,335   | 676,178,067 |
+| LutCam_ALA_ABR82        | 158,286,783   | 53,023,720  | 117,863   | 718,407,079 |
+| LutCam_ALA_ABR84        | 419,434,794   | 91,598,305  | 272,232   | 679,678,125 |
+| LutCam_ALA_ES100614HL20 | 127,307,236   | 41,957,102  | 95,655    | 729,495,905 |
+| LutCam_ALA_ES100614HL78 | 37,067,105    | 16,672,956  | 22,489    | 754,853,217 |
+| LutCam_ALA_ES100614HL82 | 203,706,898   | 54,911,574  | 193,054   | 716,444,034 |
+| LutCam_ALA_ES100614HL83 | 263,627,237   | 62,055,226  | 216,759   | 709,276,677 |
+| LutCam_ALA_ES100614HL86 | 108,268,066   | 37,282,941  | 93,415    | 734,172,306 |
+| LutCam_ALA_ES100614HL87 | 232,447,573   | 55,184,407  | 201,983   | 716,162,272 |
+| LutCam_ALA_ES100614HL90 | 502,786,829   | 88,433,704  | 288,761   | 682,826,197 |
+| LutCam_ALA_ES100614HL91 | 297,709,154   | 65,239,102  | 207,394   | 706,102,166 |
+| LutCam_ALA_ES100614HL94 | 25,121,484    | 12,623,888  | 13,760    | 758,911,014 |
+| LutCam_APA_LC424        | 335,123,661   | 77,749,643  | 228,121   | 693,570,898 |
+| LutCam_APA_LC425        | 290,629,547   | 78,002,306  | 184,965   | 693,361,391 |
+| LutCam_APA_LC426        | 514,249,837   | 100,022,690 | 321,228   | 671,204,744 |
+| LutCam_APA_LC427        | 445,957,626   | 72,840,167  | 240,185   | 698,468,310 |
+| LutCam_APA_LC428        | 437,524,458   | 89,887,622  | 279,565   | 681,381,475 |
+| LutCam_APA_LC429        | 238,523,345   | 59,213,097  | 151,419   | 712,184,146 |
+| LutCam_APA_LC430        | 272,819,736   | 62,124,435  | 187,629   | 709,236,598 |
+| LutCam_APA_LC431        | 244,740,885   | 59,037,278  | 151,025   | 712,360,359 |
+| LutCam_APA_LC438        | 620,553,279   | 113,030,779 | 357,659   | 658,160,224 |
+| LutCam_APA_LC447        | 21,917,176    | 10,919,794  | 7,043     | 760,621,825 |
+| LutCam_APA_LC448        | 487,845,509   | 96,495,367  | 296,594   | 674,756,701 |
+| LutCam_APA_LC449        | 467,281,512   | 92,372,943  | 287,766   | 678,887,953 |
+| LutCam_APA_LC450        | 648,188,347   | 112,233,967 | 344,572   | 658,970,123 |
+| LutCam_APA_LC451        | 604,596,019   | 105,683,893 | 329,015   | 665,535,754 |
+| LutCam_APA_LC452        | 338,110,907   | 69,361,301  | 202,443   | 701,984,918 |
+| LutCam_APA_LC453        | 511,897,088   | 92,486,754  | 293,152   | 678,768,756 |
+| LutCam_APA_LC454        | 3,154,577,030 | 279,208,585 | 1,479,384 | 490,860,693 |
+| LutCam_APA_LC455        | 3,043,169,418 | 246,757,435 | 1,319,408 | 523,471,819 |
+| LutCam_CAM_RB1555       | 276,100,747   | 58,156,620  | 184,579   | 713,207,463 |
+| LutCam_CAM_RB1556       | 403,215,089   | 63,764,013  | 281,846   | 707,502,803 |
+| LutCam_CAM_RB1558       | 468,760,059   | 70,456,704  | 362,304   | 700,729,654 |
+| LutCam_CAM_RB1561       | 405,298,023   | 67,504,760  | 328,430   | 703,715,472 |
+| LutCam_CAM_RB1562       | 526,458,750   | 73,233,227  | 402,977   | 697,912,458 |
+| LutCam_CAM_RB1567       | 1,058,734,756 | 116,741,380 | 630,566   | 654,176,716 |
+| LutCam_CAM_RB1571       | 761,281,162   | 92,088,452  | 461,356   | 678,998,854 |
+| LutCam_CAM_UMSNH41727   | 186,897,922   | 48,942,789  | 181,787   | 722,424,086 |
+| LutCam_CAM_UMSNH41728   | 50,613,457    | 20,277,560  | 26,828    | 751,244,274 |
+| LutCam_FLO_309151       | 663,626,232   | 84,517,885  | 481,980   | 686,548,797 |
+| LutCam_FLO_3091510      | 447,409,158   | 82,066,477  | 328,859   | 689,153,326 |
+| LutCam_FLO_309153       | 433,193,524   | 61,743,103  | 351,512   | 709,454,047 |
+| LutCam_FLO_309154       | 548,489,811   | 102,227,906 | 389,434   | 668,931,322 |
+| LutCam_FLO_309155       | 958,823,685   | 122,966,795 | 637,452   | 647,944,415 |
+| LutCam_FLO_309156       | 76,011,650    | 30,185,556  | 41,037    | 741,322,069 |
+| LutCam_FLO_309157       | 468,201,406   | 68,552,946  | 361,689   | 702,634,027 |
+| LutCam_FLO_309158       | 808,440,539   | 104,734,132 | 510,250   | 666,304,280 |
+| LutCam_FLO_309159       | 1,213,615,041 | 135,860,145 | 750,680   | 634,937,837 |
+| LutCam_FLO_3121510      | 340,688,507   | 74,597,683  | 209,291   | 696,741,688 |
+| LutCam_FLO_3121511      | 588,278,760   | 89,034,263  | 316,160   | 682,198,239 |
+| LutCam_FLO_3121512      | 505,517,324   | 82,981,036  | 300,016   | 688,267,610 |
+| LutCam_FLO_3121513      | 4,275,507     | 1,968,900   | 663       | 769,579,099 |
+| LutCam_FLO_3121514      | 76,221,186    | 27,078,224  | 53,490    | 744,416,948 |
+| LutCam_FLO_3121515      | 884,757,136   | 110,611,491 | 580,169   | 660,357,002 |
+| LutCam_FLO_3121516      | 355,015,136   | 73,553,129  | 341,809   | 697,653,724 |
+| LutCam_FLO_3121517      | 854,064,734   | 111,266,775 | 520,793   | 659,761,094 |
+| LutCam_FLO_312159       | 1,075,464,493 | 145,103,282 | 543,766   | 625,901,614 |
+| LutCam_LOU_LSU223       | 617,498,576   | 80,926,440  | 337,663   | 690,284,559 |
+| LutCam_LOU_LSU224       | 359,747,911   | 68,648,542  | 231,795   | 702,668,325 |
+| LutCam_LOU_LSU226       | 636,447,258   | 106,349,850 | 336,589   | 664,862,223 |
+| LutCam_LOU_LSU227       | 791,318,819   | 115,412,002 | 379,648   | 655,757,012 |
+| LutCam_LOU_LSU228       | 610,291,526   | 106,312,776 | 328,298   | 664,907,588 |
+| LutCam_LOU_LSU229       | 848,904,401   | 113,317,549 | 455,436   | 657,775,677 |
+| LutCam_LOU_LSU230       | 57,727,672    | 25,943,684  | 29,699    | 745,575,279 |
+| LutCam_LOU_LSU231       | 809,563,768   | 103,454,677 | 469,116   | 667,624,869 |
+| LutCam_LOU_LSU268       | 94,597,429    | 32,871,474  | 62,449    | 738,614,739 |
+| LutCam_LOU_LSU271       | 162,932,529   | 44,703,971  | 116,442   | 726,728,249 |
+| LutCam_LOU_LSU272       | 73,313,635    | 27,271,540  | 61,953    | 744,215,169 |
+| LutCam_LOU_LSU273       | 121,030,471   | 40,160,351  | 79,324    | 731,308,987 |
+| LutCam_LOU_LSU276       | 33,265,241    | 15,358,415  | 18,292    | 756,171,955 |
+| LutCam_LOU_LSU278       | 639,099,400   | 129,200,715 | 409,401   | 641,938,546 |
+| LutCam_LOU_LSU279       | 456,674,387   | 104,070,563 | 286,369   | 667,191,730 |
+| LutCam_LOU_LSU280       | 121,207,200   | 42,140,393  | 78,810    | 729,329,459 |
+| LutCam_LOU_LSU281       | 387,527,607   | 91,106,743  | 245,942   | 680,195,977 |
+| LutCam_TAB_RB1599       | 895,255,813   | 101,054,094 | 482,895   | 670,011,673 |
+| LutCam_TAB_RB1600       | 707,066,261   | 85,351,276  | 356,535   | 685,840,851 |
+| LutCam_TAB_RB1601       | 1,057,284,247 | 103,676,959 | 561,575   | 667,310,128 |
+| LutCam_TAB_RB1602       | 478,054,393   | 68,926,012  | 294,252   | 702,328,398 |
+| LutCam_TAB_RB1603       | 723,399,931   | 83,087,306  | 362,997   | 688,098,359 |
+| LutCam_TAB_RB1604       | 973,412,006   | 106,342,009 | 462,130   | 664,744,523 |
+| LutCam_TAB_RB1605       | 1,269,750,589 | 112,014,519 | 565,254   | 658,968,889 |
+| LutCam_TUX_RB1606       | 847,917,470   | 62,544,204  | 350,733   | 708,653,725 |
+| LutCam_TUX_RB1607       | 384,462,105   | 56,904,369  | 223,321   | 714,420,972 |
+| LutCam_TUX_RB1608       | 582,539,873   | 56,455,793  | 283,869   | 714,809,000 |
+| LutCam_VER_RB1609       | 129,737,277   | 45,343,736  | 84,788    | 726,120,138 |
+| LutCam_VER_RB1610       | 513,888,774   | 68,100,254  | 275,848   | 703,172,560 |
+| LutCam_VER_RB1611       | 1,155,095,925 | 70,081,193  | 494,129   | 700,973,340 |
+| LutCam_YUC_RB1637       | 117,984,695   | 26,694,318  | 121,564   | 744,732,780 |
+| LutCam_YUC_RB1640       | 353,566,500   | 55,090,270  | 401,599   | 716,056,793 |
+| LutCam_YUC_RB1641       | 108,904,394   | 34,937,971  | 157,651   | 736,453,040 |
+| LutCam_YUC_RB1642       | 102,435,760   | 33,229,636  | 128,881   | 738,190,145 |
+| LutCam_YUC_RB1643       | 211,082,818   | 44,904,647  | 258,467   | 726,385,548 |
+| LutCam_YUC_RB1645       | 171,364,513   | 44,832,572  | 241,220   | 726,474,870 |
+| LutCam_YUC_RB1646       | 175,042,297   | 43,363,559  | 233,644   | 727,951,459 |
+| LutCam_YUC_RB1647       | 126,275,026   | 38,612,809  | 159,121   | 732,776,732 |
+| LutCam_YUC_RB1648       | 220,342,705   | 41,175,859  | 213,841   | 730,158,962 |
+| LutCam_YUC_RB1650       | 80,274,791    | 21,124,334  | 106,444   | 750,317,884 |
+| LutCam_YUC_RB1651       | 197,368,993   | 47,195,473  | 274,530   | 724,078,659 |
+| LutCam_YUC_RB1652       | 204,449,452   | 34,925,696  | 232,950   | 736,390,016 |
+| LutPur_AMA_RB1432       | 524,055,078   | 68,877,907  | 240,269   | 702,430,486 |
+| LutPur_AMA_RB1433       | 767,469,321   | 30,551,168  | 177,146   | 740,820,348 |
+| LutPur_AMA_RB1434       | 529,373,060   | 110,654,227 | 356,209   | 660,538,226 |
+| LutPur_AMA_RB1436       | 837,219,729   | 92,726,745  | 348,447   | 678,473,470 |
+| LutPur_AMA_RB1438       | 462,632,504   | 64,949,478  | 212,666   | 706,386,518 |
+| LutPur_AMA_RB1439       | 983,558,164   | 98,317,155  | 386,360   | 672,845,147 |
+| LutPur_AMA_RB1442       | 515,515,316   | 69,486,693  | 236,022   | 701,825,947 |
+| LutPur_AMA_RB1444       | 452,907,169   | 65,504,275  | 213,421   | 705,830,966 |
+| LutPur_AMA_RB1445       | 418,608,914   | 63,698,700  | 214,558   | 707,635,404 |
+| LutPur_AMA_RB1446       | 658,248,834   | 78,744,652  | 280,723   | 692,523,287 |
+| LutPur_AMA_RB1458       | 702,335,336   | 79,917,838  | 272,781   | 691,358,043 |
+| LutPur_AMA_RB1459       | 550,237,397   | 73,605,556  | 304,733   | 697,638,373 |
+| LutPur_AMA_RB1460       | 821,079,389   | 84,831,508  | 353,552   | 686,363,602 |
+| LutPur_FOR_RB1470       | 290,191,436   | 54,964,460  | 179,786   | 716,404,416 |
+| LutPur_FOR_RB1471       | 646,790,826   | 75,693,987  | 315,778   | 695,538,897 |
+| LutPur_FOR_RB1473       | 355,910,654   | 59,237,606  | 200,611   | 712,110,445 |
+| LutPur_FOR_RB1474       | 276,805,476   | 53,142,489  | 177,239   | 718,228,934 |
+| LutPur_FOR_RB1475       | 352,967,774   | 57,697,974  | 206,784   | 713,643,904 |
+| LutPur_FOR_RB1476       | 466,353,392   | 64,986,008  | 253,105   | 706,309,549 |
+| LutPur_FOR_RB1477       | 198,349,227   | 46,029,582  | 131,071   | 725,388,009 |
+| LutPur_FOR_RB1478       | 289,353,176   | 55,374,837  | 179,697   | 715,994,128 |
+| LutPur_FOR_RB1479       | 327,420,597   | 58,546,128  | 194,999   | 712,807,535 |
+| LutPur_FOR_RB1482       | 316,219,035   | 57,583,670  | 188,494   | 713,776,498 |
+| LutPur_FOR_RB1484       | 447,563,686   | 67,342,806  | 240,855   | 703,965,001 |
+| LutPur_FOR_RB1490       | 184,003,621   | 43,773,074  | 122,159   | 727,653,429 |
+| LutPur_GUA_GUA001       | 424,056,863   | 83,288,649  | 220,227   | 688,039,786 |
+| LutPur_GUA_GUA002       | 1,839,666,299 | 117,080,132 | 1,122,147 | 653,346,383 |
+| LutPur_GUA_GUA003       | 386,463,523   | 59,548,597  | 226,785   | 711,773,280 |
+| LutPur_GUA_GUA004       | 1,038,667,746 | 106,157,727 | 601,907   | 664,789,028 |
+| LutPur_GUA_LP10         | 135,311,976   | 47,617,774  | 77,319    | 723,853,569 |
+| LutPur_GUA_LP8          | 379,044,437   | 77,515,598  | 217,276   | 693,815,788 |
+| LutPur_GUA_LP9          | 438,975,809   | 90,891,378  | 263,869   | 680,393,415 |
+| LutPur_NUE_LP1          | 527,690,325   | 99,293,179  | 327,387   | 671,928,096 |
+| LutPur_NUE_LP2          | 127,571,009   | 42,263,968  | 97,794    | 729,186,900 |
+| LutPur_NUE_LP3          | 931,885,674   | 136,925,253 | 413,283   | 634,210,126 |
+| LutPur_NUE_LP4          | 16,378,580    | 7,481,462   | 3,167     | 764,064,033 |
+| LutPur_NUE_LP5          | 275,434,874   | 67,640,494  | 169,523   | 703,738,645 |
+| LutPur_NUE_LP6          | 250,385,272   | 58,845,518  | 181,726   | 712,521,418 |
+| LutPur_NUE_LP7          | 58,562,082    | 27,742,534  | 28,040    | 743,778,088 |
+| LutPur_NUE_UMSNH16756   | 715,661,508   | 55,892,005  | 244,778   | 715,411,879 |
+| LutPur_NUE_UMSNH16996   | 274,214,645   | 34,757,258  | 121,251   | 736,670,153 |
+| LutPur_NUE_UMSNH16997   | 226,999,040   | 14,759,400  | 24,166    | 756,765,096 |
+| LutPur_NUE_VEN001       | 614,831,049   | 103,826,039 | 310,782   | 667,411,841 |
+| LutPur_NUE_VEN002       | 768,037,575   | 112,047,031 | 350,118   | 659,151,513 |
+| LutPur_NUE_VEN003       | 843,975,760   | 127,503,269 | 387,667   | 643,657,726 |
+| LutPur_NUE_VEN004       | 150,146,847   | 47,291,037  | 87,335    | 724,170,290 |
+| LutPur_NUE_VEN005       | 685,140,374   | 110,220,512 | 346,161   | 660,981,989 |
+| LutPur_NUE_VEN006       | 321,763,036   | 79,497,820  | 218,927   | 691,831,915 |
+| LutPur_SAL_RB1520       | 256,847,146   | 45,619,168  | 158,695   | 725,770,799 |
+| LutPur_SAL_RB1522       | 377,507,232   | 50,286,241  | 174,165   | 721,088,256 |
+| LutPur_SAL_RB1523       | 51,898,586    | 20,099,772  | 28,474    | 751,420,416 |
+| LutPur_SAL_RB1524       | 77,560,358    | 27,387,740  | 45,614    | 744,115,308 |
+| LutPur_SAL_RB1525       | 35,255,181    | 2,759,917   | 1,185     | 768,787,560 |
+| LutPur_SAL_RB1526       | 71,703,773    | 20,093,431  | 26,072    | 751,429,159 |
+| LutPur_SAL_RB1527       | 32,034,728    | 12,613,201  | 11,134    | 758,924,327 |
+| LutPur_SAL_RB1528       | 293,947,204   | 48,569,950  | 173,169   | 722,805,543 |
+| LutPur_SAL_RB1531       | 998,655,992   | 67,963,970  | 375,269   | 703,209,423 |
+| LutPur_SAL_RB1532       | 1,168,529,824 | 77,905,470  | 435,447   | 693,207,745 |
+| LutPur_SAL_RB1533       | 508,139,781   | 55,830,747  | 256,436   | 715,461,479 |
+| LutPur_SAL_RB1534       | 483,905,285   | 58,159,694  | 252,312   | 713,136,656 |
+| LutPur_SAO_RB1496       | 571,263,101   | 71,360,624  | 270,173   | 699,917,865 |
+| LutPur_SAO_RB1497       | 725,914,957   | 71,620,034  | 324,742   | 699,603,886 |
+| LutPur_SAO_RB1498       | 503,499,279   | 68,027,575  | 261,655   | 703,259,432 |
+| LutPur_SAO_RB1499       | 268,373,453   | 54,374,756  | 166,399   | 717,007,507 |
+| LutPur_SAO_RB1502       | 366,993,862   | 50,387,043  | 131,116   | 721,030,503 |
+| LutPur_SAO_RB1503       | 318,955,962   | 54,177,708  | 157,890   | 717,213,064 |
+| LutPur_SAO_RB1504       | 95,976,308    | 31,600,031  | 55,613    | 739,893,018 |
+| LutPur_SAO_RB1505       | 205,483,487   | 33,475,309  | 53,340    | 738,020,013 |
+| LutPur_SAO_RB1507       | 128,404,887   | 27,070,521  | 38,381    | 744,439,760 |
+| LutPur_SAO_RB1510       | 269,892,762   | 55,539,029  | 143,771   | 715,865,862 |
+| LutPur_SAO_RB1514       | 273,449,997   | 4,967,910   | 3,105     | 766,577,647 |
+| LutPur_SAO_RB1515       | 100,793,857   | 16,859,887  | 16,841    | 754,671,934 |
+| LutPur_SAO_RB1516       | 161,128,268   | 18,585,101  | 17,965    | 752,945,596 |
 
