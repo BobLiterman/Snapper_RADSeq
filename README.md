@@ -534,4 +534,23 @@ Based on the SNPs generated above, we screened the mapping results from all samp
 ![Rd3 SNP Results](images/SNP_Plot_3.png)  
 
 #### Step 9: Create the final set of reference SNPs  
+To create the final set of reference SNPs, we did a few rounds of sanity filtering.  
+
+1. Combined all SNPs from Reference Sets 3A + 3B  
+2. Choose the top 15 samples per species based on the lowest proportion of mismatching SNPs  
+3. Remove any SNPs where any of these 15 samples had more than one allele  
+4. Remove any SNPs where any of these 15 samples had a non-identifying allele  
+
+Then, we filtered these SNPs down to those present in 2, 3, 4, or 5 specimens per species.  
+
+##### Final SNP Counts:  
+Covered by 2 specimens per species: 12,636 SNPs  
+Covered by 3 specimens per species: 8,546 SNPs  
+Covered by 4 specimens per species: 5,799 SNPs  
+Covered by 5 specimens per species: 4,111 SNPs  
+
+We then re-classified all samples using each of these SNP sets.  
+
+![Rd4 SNP Results](images/SNP_Plot_4.png)  
+
 
