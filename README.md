@@ -551,6 +551,6 @@ Covered by 5 specimens per species: 4,111 SNPs
 
 We then re-classified all samples using each of these SNP sets.  
 
-![Rd4 SNP Results](images/SNP_Plot_4.png)  
+![Rd4 SNP Results](images/SNP_Plot_4.jpg)  
 
 
