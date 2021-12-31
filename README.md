@@ -553,4 +553,6 @@ We then re-classified all samples using each of these SNP sets.
 
 ![Rd4 SNP Results](images/SNP_Plot_4.jpg)  
 
+Although there are small differences between the SNP sets, the overall story stays the same. To that end, we chose the SNPs covered by 2+2 as the final SNP set.    
+
 
